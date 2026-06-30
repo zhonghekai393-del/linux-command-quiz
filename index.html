@@ -1,0 +1,907 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Linux 命令刷题</title>
+  <style>
+    :root {
+      --bg: #f5f6f3;
+      --panel: #ffffff;
+      --ink: #20231f;
+      --muted: #68706a;
+      --line: #dce0da;
+      --green: #1f7a4d;
+      --green-soft: #e5f3ea;
+      --gold: #a66718;
+      --gold-soft: #fff0d7;
+      --red: #b33a30;
+      --red-soft: #fae6e3;
+      --blue: #315d94;
+      --code: #172018;
+      --shadow: 0 16px 36px rgba(31, 35, 31, .08);
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(120deg, rgba(31, 122, 77, .10), transparent 34%),
+        linear-gradient(300deg, rgba(166, 103, 24, .12), transparent 30%),
+        var(--bg);
+      min-height: 100vh;
+    }
+
+    button, textarea, input { font: inherit; }
+    button { cursor: pointer; }
+
+    .app {
+      width: min(1420px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 22px 0 28px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: end;
+      margin-bottom: 18px;
+    }
+
+    .title h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 48px);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .title p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(88px, 1fr));
+      gap: 8px;
+      min-width: 430px;
+    }
+
+    .metric {
+      background: rgba(255,255,255,.74);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      box-shadow: 0 8px 20px rgba(31, 35, 31, .04);
+    }
+
+    .metric b {
+      display: block;
+      font-size: 22px;
+      line-height: 1.1;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 250px minmax(0, 1fr) 330px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      background: rgba(255,255,255,.90);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .side {
+      padding: 14px;
+      position: sticky;
+      top: 12px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--muted);
+      margin: 8px 2px 10px;
+    }
+
+    .nav {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 18px;
+    }
+
+    .nav button,
+    .mode button,
+    .tool-btn {
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--ink);
+      border-radius: 8px;
+      min-height: 38px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      text-align: left;
+      justify-content: flex-start;
+    }
+
+    .nav button:hover,
+    .mode button:hover,
+    .tool-btn:hover { background: #eef1ec; }
+
+    .nav button.active,
+    .mode button.active {
+      background: var(--green-soft);
+      border-color: #afd8bd;
+      color: #145a37;
+      font-weight: 800;
+    }
+
+    .icon {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 auto;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .mode {
+      display: grid;
+      gap: 6px;
+    }
+
+    .main {
+      min-width: 0;
+    }
+
+    .quiz-card {
+      padding: 22px;
+    }
+
+    .question-head {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 800;
+      border: 1px solid var(--line);
+      background: #f8faf7;
+      color: var(--muted);
+    }
+
+    .badge.green { background: var(--green-soft); color: #145a37; border-color: #b7dcc3; }
+    .badge.gold { background: var(--gold-soft); color: #70440d; border-color: #edcf9a; }
+    .badge.red { background: var(--red-soft); color: #842920; border-color: #efbbb5; }
+
+    .q-index {
+      width: 64px;
+      min-width: 64px;
+      height: 64px;
+      display: grid;
+      place-items: center;
+      background: var(--ink);
+      color: white;
+      border-radius: 8px;
+      font-weight: 900;
+      font-size: 22px;
+    }
+
+    .question h2 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.34;
+      letter-spacing: 0;
+    }
+
+    .context {
+      border-left: 4px solid #d3b06f;
+      background: #fff9ed;
+      padding: 12px 14px;
+      margin: 14px 0 16px;
+      border-radius: 0 8px 8px 0;
+      color: #5f461f;
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    .disk-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 13px;
+      background: white;
+    }
+
+    .disk-table th,
+    .disk-table td {
+      border: 1px solid #e5d6b9;
+      padding: 7px 8px;
+      text-align: left;
+    }
+
+    .disk-table th { background: #fff0d7; }
+
+    .answer-box {
+      margin-top: 16px;
+    }
+
+    .answer-box label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--muted);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 168px;
+      resize: vertical;
+      border: 1px solid #c9d1c8;
+      border-radius: 8px;
+      padding: 14px;
+      background: #fbfcfb;
+      color: var(--code);
+      font-family: Consolas, "Cascadia Mono", "Courier New", monospace;
+      font-size: 15px;
+      line-height: 1.55;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: #6aad83;
+      box-shadow: 0 0 0 4px rgba(31, 122, 77, .12);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .btn {
+      min-height: 40px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      padding: 8px 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 800;
+    }
+
+    .btn.primary {
+      background: var(--green);
+      border-color: var(--green);
+      color: white;
+    }
+
+    .btn.warn {
+      background: var(--gold-soft);
+      border-color: #e2c17d;
+      color: #70440d;
+    }
+
+    .btn.marked {
+      background: var(--gold-soft);
+      border-color: #d9a441;
+      color: #70440d;
+    }
+
+    .btn.danger {
+      background: var(--red-soft);
+      border-color: #e4aaa4;
+      color: #842920;
+    }
+
+    .feedback {
+      display: none;
+      margin-top: 16px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      overflow: hidden;
+    }
+
+    .feedback.show { display: block; }
+
+    .feedback-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 14px;
+      background: #f8faf7;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .score {
+      font-weight: 900;
+    }
+
+    .score.good { color: var(--green); }
+    .score.mid { color: var(--gold); }
+    .score.bad { color: var(--red); }
+
+    .feedback-body {
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+    }
+
+    pre {
+      margin: 0;
+      padding: 12px;
+      border-radius: 8px;
+      background: #111913;
+      color: #e9f2e9;
+      overflow: auto;
+      white-space: pre-wrap;
+      font-family: Consolas, "Cascadia Mono", "Courier New", monospace;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .missing {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--red);
+      line-height: 1.7;
+    }
+
+    .reference {
+      padding: 14px;
+    }
+
+    .search {
+      position: relative;
+      margin-bottom: 12px;
+    }
+
+    .search input {
+      width: 100%;
+      height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 12px 0 36px;
+      outline: none;
+      background: #fbfcfb;
+    }
+
+    .search svg {
+      position: absolute;
+      left: 12px;
+      top: 11px;
+      color: var(--muted);
+    }
+
+    .cmd-list {
+      display: grid;
+      gap: 8px;
+      max-height: calc(100vh - 248px);
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .cmd-item {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fcfdfc;
+    }
+
+    .cmd-item b {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .cmd-item code {
+      display: block;
+      font-family: Consolas, "Cascadia Mono", "Courier New", monospace;
+      font-size: 12px;
+      color: #145a37;
+      word-break: break-all;
+      line-height: 1.55;
+    }
+
+    .sheet-strip {
+      display: grid;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .sheet-strip a {
+      display: block;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      padding: 9px 10px;
+      color: var(--blue);
+      text-decoration: none;
+      background: #f9faf8;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .empty {
+      min-height: 220px;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      text-align: center;
+      padding: 30px;
+    }
+
+    @media (max-width: 1120px) {
+      .layout { grid-template-columns: 220px minmax(0, 1fr); }
+      .reference { grid-column: 1 / -1; }
+      .cmd-list { max-height: 320px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 820px) {
+      .app { width: min(100vw - 20px, 760px); padding-top: 14px; }
+      .topbar { grid-template-columns: 1fr; }
+      .summary { min-width: 0; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .layout { grid-template-columns: 1fr; }
+      .main { order: -1; }
+      .side { position: static; }
+      .question-head {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .answer-box label {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .q-index { width: 52px; min-width: 52px; height: 52px; font-size: 18px; }
+      .question h2 { font-size: 20px; }
+      .cmd-list { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="title">
+        <h1>Linux 命令刷题</h1>
+        <p>按期末复习一到四整理，共 29 题。先默写命令，再判分和看标准答案。</p>
+      </div>
+      <div class="summary" aria-label="学习统计">
+        <div class="metric"><b id="totalCount">29</b><span>当前题量</span></div>
+        <div class="metric"><b id="doneCount">0</b><span>已作答</span></div>
+        <div class="metric"><b id="rightRate">0%</b><span>正确率</span></div>
+        <div class="metric"><b id="wrongCount">0</b><span>错题数</span></div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="panel side">
+        <div class="section-title">分类</div>
+        <nav class="nav" id="categoryNav"></nav>
+        <div class="section-title">模式</div>
+        <div class="mode" id="modeNav">
+          <button data-mode="order" class="active" title="按当前分类顺序刷题"></button>
+          <button data-mode="random" title="从当前分类随机抽题"></button>
+          <button data-mode="wrong" title="只刷做错过的题"></button>
+        </div>
+        <div class="section-title">操作</div>
+        <button class="tool-btn" id="resetBtn" title="清空本页保存的答题记录"></button>
+      </aside>
+
+      <main class="main">
+        <section class="panel quiz-card" id="quizCard"></section>
+      </main>
+
+      <aside class="panel reference">
+        <div class="section-title">命令速背</div>
+        <div class="search">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+          <input id="searchInput" type="search" placeholder="搜命令或题目">
+        </div>
+        <div class="cmd-list" id="cmdList"></div>
+        <div class="section-title">截图答案</div>
+        <div class="sheet-strip">
+          <a href="assets/answer-sheets/review-1.png" target="_blank">复习一答案截图</a>
+          <a href="assets/answer-sheets/review-2.png" target="_blank">复习二答案截图</a>
+          <a href="assets/answer-sheets/review-3.png" target="_blank">复习三答案截图</a>
+          <a href="assets/answer-sheets/review-4.png" target="_blank">复习四答案截图</a>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const icons = {
+      folder: '<svg class="icon" viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg>',
+      shuffle: '<svg class="icon" viewBox="0 0 24 24"><path d="M16 3h5v5"></path><path d="M4 20 21 3"></path><path d="M21 16v5h-5"></path><path d="M15 15l6 6"></path><path d="M4 4l5 5"></path></svg>',
+      list: '<svg class="icon" viewBox="0 0 24 24"><path d="M8 6h13"></path><path d="M8 12h13"></path><path d="M8 18h13"></path><path d="M3 6h.01"></path><path d="M3 12h.01"></path><path d="M3 18h.01"></path></svg>',
+      alert: '<svg class="icon" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>',
+      check: '<svg class="icon" viewBox="0 0 24 24"><path d="m20 6-11 11-5-5"></path></svg>',
+      eye: '<svg class="icon" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>',
+      back: '<svg class="icon" viewBox="0 0 24 24"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg>',
+      arrow: '<svg class="icon" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>',
+      star: '<svg class="icon" viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9Z"></path></svg>',
+      trash: '<svg class="icon" viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="m19 6-1 14H6L5 6"></path></svg>',
+      copy: '<svg class="icon" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"></rect><path d="M4 16V6a2 2 0 0 1 2-2h10"></path></svg>'
+    };
+
+    const categories = [
+      { id: 'all', name: '全部题目' },
+      { id: 'focus', name: '重点题' },
+      { id: 'basic', name: '常用命令' },
+      { id: 'user', name: '账户管理' },
+      { id: 'perm', name: '权限管理' },
+      { id: 'yum', name: 'YUM 软件包' },
+      { id: 'disk', name: '磁盘存储' }
+    ];
+
+    const diskContext = `
+      新增 20G SCSI 硬盘 /dev/sdb，要求分区、格式化、挂载。
+      <table class="disk-table">
+        <thead><tr><th>分区</th><th>容量</th><th>文件系统</th><th>挂载点</th></tr></thead>
+        <tbody>
+          <tr><td>主分区1</td><td>10G</td><td>xfs</td><td>/mnt/game</td></tr>
+          <tr><td>主分区2</td><td>5G</td><td>ext4</td><td>/mnt/film</td></tr>
+          <tr><td>扩展分区</td><td>剩余空间</td><td></td><td></td></tr>
+          <tr><td>逻辑分区5</td><td>3G</td><td>ext3</td><td>/mnt/study</td></tr>
+          <tr><td>逻辑分区6</td><td>剩余空间</td><td>vfat</td><td>/mnt/work</td></tr>
+        </tbody>
+      </table>`;
+
+    const questions = [
+      q('q1', 'basic', '期末复习一', '新建目录 /xa25，并切换为当前目录。', ['mkdir /xa25', 'cd /xa25'], 'mkdir /xa25\ncd /xa25'),
+      q('q2', 'basic', '期末复习一', '在当前目录中创建空文件 data.txt。', ['touch data.txt'], 'touch data.txt'),
+      q('q3', 'basic', '期末复习一', '将 /etc/profile 文件复制到当前目录。', [['cp /etc/profile ./', 'cp /etc/profile .']], 'cp /etc/profile ./'),
+      q('q4', 'basic', '期末复习一', '把当前目录中文件的详细信息保存到 file.txt 文件中。', ['ls -l', '> file.txt'], 'ls -l > file.txt'),
+      q('q5', 'basic', '期末复习一', '带行号显示 /etc/profile 文件第 10 行至 30 行内容。', [['cat -n /etc/profile | head -n 30 | tail -n 21', 'nl -ba /etc/profile | sed -n "10,30p"', "nl -ba /etc/profile | sed -n '10,30p'"]], 'cat -n /etc/profile | head -n 30 | tail -n 21'),
+      q('q6', 'basic', '期末复习一', '按文件大小降序显示 /etc 目录中文件的详细信息。', [['ls -l /etc | sort -nr -k 5', 'ls -lS /etc']], 'ls -l /etc | sort -nr -k 5'),
+      q('q7', 'basic', '期末复习一', '统计 /etc 目录中普通文件的数量。', ['find /etc -type f', 'wc -l'], 'find /etc -type f | wc -l'),
+      q('q8', 'basic', '期末复习一', '显示 /etc/passwd 文件中的用户名和 UID。', ['cut -d: -f1,3 /etc/passwd'], 'cut -d: -f1,3 /etc/passwd'),
+      q('q9', 'basic', '期末复习一', '查找系统中所有文件长度为 0 的普通文件，并列出详细信息。', ['find /', '-size 0', '-type f', '-exec ls -l'], 'find / -size 0 -type f -exec ls -l {} \\;'),
+      q('q10', 'basic', '期末复习一', '搜索 /etc/profile 文件中不含有 "if" 字串的行。', [['grep -v "if" /etc/profile', 'grep -v if /etc/profile']], 'grep -v "if" /etc/profile'),
+
+      q('q11', 'user', '期末复习二', '创建用户组 xa251、xa252 和 xa253。', ['groupadd xa251', 'groupadd xa252', 'groupadd xa253'], 'groupadd xa251\ngroupadd xa252\ngroupadd xa253'),
+      q('q12', 'user', '期末复习二', '创建用户 teacher，附加组为 xa251、xa252、xa253，密码为 123。', ['useradd -G xa251,xa252,xa253 teacher', 'passwd teacher'], 'useradd -G xa251,xa252,xa253 teacher\npasswd teacher'),
+      q('q13', 'user', '期末复习二', '创建用户 stu01、stu02 和 stu03，密码均为 123。', ['useradd stu01', 'useradd stu02', 'useradd stu03', 'passwd stu01', 'passwd stu02', 'passwd stu03'], 'useradd stu01\nuseradd stu02\nuseradd stu03\npasswd stu01\npasswd stu02\npasswd stu03'),
+      q('q14', 'user', '期末复习二', '将 stu01 加入 xa251 组，stu02 加入 xa252 组，stu03 加入 xa253 组。', ['gpasswd -a stu01 xa251', 'gpasswd -a stu02 xa252', 'gpasswd -a stu03 xa253'], 'gpasswd -a stu01 xa251\ngpasswd -a stu02 xa252\ngpasswd -a stu03 xa253'),
+      q('q15', 'user', '期末复习二', '查看 stu01 和 teacher 用户信息。', ['id stu01', 'id teacher'], 'id stu01\nid teacher'),
+
+      q('q16', 'perm', '期末复习二', '在当前目录下创建 share 目录。', ['mkdir share'], 'mkdir share'),
+      q('q17', 'perm', '期末复习二', '设置 share 目录的所有者为 teacher，所属组为 xa251。', ['chown teacher.xa251 share'], 'chown teacher.xa251 share\n# 也可用：chown teacher:xa251 share'),
+      q('q18', 'perm', '期末复习二', '设置 teacher 和用户组 xa251 对 share 目录有读写执行权限，其它用户无任何访问权限。', [['chmod ug=rwx,o= share', 'chmod 770 share']], 'chmod ug=rwx,o= share\n# 也可用：chmod 770 share'),
+      q('q19', 'perm', '期末复习二', '设置用户组 xa252 和 xa253 对 share 目录有读执行权限。', ['setfacl -m g:xa252:rx share', 'setfacl -m g:xa253:rx share'], 'setfacl -m g:xa252:rx share\nsetfacl -m g:xa253:rx share'),
+      q('q20', 'perm', '期末复习二', '设置 share 目录用户只能删除自己的文件，不能删除其它用户的文件。', ['chmod o+t share'], 'chmod o+t share'),
+
+      q('q21', 'yum', '期末复习三', '创建目录 /mnt/cdrom。', ['mkdir /mnt/cdrom'], 'mkdir /mnt/cdrom'),
+      q('q22', 'yum', '期末复习三', '将光驱挂载到 /mnt/cdrom。', ['mount /dev/sr0 /mnt/cdrom'], 'mount /dev/sr0 /mnt/cdrom'),
+      q('q23', 'yum', '期末复习三', '删除系统默认配置的 yum 源。', ['cd /etc/yum.repos.d', 'rm -f C*'], 'cd /etc/yum.repos.d\nrm -f C*'),
+      q('q24', 'yum', '期末复习三', '修改或创建 yum 源配置文件，将光盘配置为 yum 源。', ['[xa252]', 'name=xa252', 'baseurl=file:///mnt/cdrom', 'enabled=1', 'gpgcheck=0'], 'vi /etc/yum.repos.d/xa252.repo\n[xa252]\nname=xa252\nbaseurl=file:///mnt/cdrom\nenabled=1\ngpgcheck=0'),
+      q('q25', 'yum', '期末复习三', '安装 vsftpd 软件包。', ['yum clean all', 'yum makecache', 'yum install -y vsftpd'], 'yum clean all\nyum makecache\nyum install -y vsftpd'),
+
+      q('q26', 'disk', '期末复习四', '用 fdisk 命令对磁盘分区，分区结束后查看 lsblk。', ['fdisk /dev/sdb', 'lsblk'], 'fdisk /dev/sdb\nlsblk', diskContext),
+      q('q27', 'disk', '期末复习四', '用 mkfs 命令创建各分区的文件系统。', ['mkfs -t xfs /dev/sdb1', 'mkfs -t ext4 /dev/sdb2', 'mkfs -t ext3 /dev/sdb5', 'mkfs -t vfat /dev/sdb6'], 'mkfs -t xfs /dev/sdb1\nmkfs -t ext4 /dev/sdb2\nmkfs -t ext3 /dev/sdb5\nmkfs -t vfat /dev/sdb6', diskContext),
+      q('q28', 'disk', '期末复习四', '创建挂载点目录，并用 ls /mnt 查看。', ['mkdir /mnt/game', 'mkdir /mnt/film', 'mkdir /mnt/study', 'mkdir /mnt/work', 'ls /mnt'], 'mkdir /mnt/game\nmkdir /mnt/film\nmkdir /mnt/study\nmkdir /mnt/work\nls /mnt', diskContext),
+      q('q29', 'disk', '期末复习四', '用 mount 命令挂载各分区到对应挂载点，完成后查看 df -Th。', ['mount /dev/sdb1 /mnt/game', 'mount /dev/sdb2 /mnt/film', 'mount /dev/sdb5 /mnt/study', 'mount /dev/sdb6 /mnt/work', 'df -Th'], 'mount /dev/sdb1 /mnt/game\nmount /dev/sdb2 /mnt/film\nmount /dev/sdb5 /mnt/study\nmount /dev/sdb6 /mnt/work\ndf -Th', diskContext)
+    ];
+
+    function q(id, category, source, prompt, required, answer, context = '') {
+      return { id, category, source, prompt, required, answer, context };
+    }
+
+    const state = {
+      category: 'all',
+      mode: 'order',
+      index: 0,
+      answers: JSON.parse(localStorage.getItem('linuxQuizAnswers') || '{}'),
+      results: JSON.parse(localStorage.getItem('linuxQuizResults') || '{}'),
+      focus: JSON.parse(localStorage.getItem('linuxQuizFocus') || '{}')
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function normalize(text) {
+      return text
+        .toLowerCase()
+        .replace(/[：；，。]/g, (m) => ({'：':':','；':';','，':',','。':'.'}[m]))
+        .replace(/\s*([|>;])\s*/g, '$1')
+        .replace(/\s+/g, ' ')
+        .replace(/teacher:xa251/g, 'teacher.xa251')
+        .replace(/ls -ls/g, 'ls -l')
+        .trim();
+    }
+
+    function normalizeReq(text) {
+      return normalize(text).replace(/\s+/g, ' ');
+    }
+
+    function exactAnswer(text) {
+      return String(text).replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+    }
+
+    function filteredQuestions() {
+      let list = state.category === 'all'
+        ? questions
+        : state.category === 'focus'
+          ? questions.filter(item => state.focus[item.id])
+          : questions.filter(item => item.category === state.category);
+      if (state.mode === 'wrong') list = list.filter(item => state.results[item.id]?.score < 1);
+      return list;
+    }
+
+    function currentQuestion() {
+      const list = filteredQuestions();
+      if (!list.length) return null;
+      if (state.index >= list.length) state.index = 0;
+      return list[state.index];
+    }
+
+    function renderNav() {
+      $('categoryNav').innerHTML = categories.map(cat => {
+        const count = cat.id === 'all'
+          ? questions.length
+          : cat.id === 'focus'
+            ? questions.filter(q => state.focus[q.id]).length
+            : questions.filter(q => q.category === cat.id).length;
+        return `<button class="${state.category === cat.id ? 'active' : ''}" data-category="${cat.id}" title="${cat.name}">
+          ${icons.folder}<span>${cat.name}</span><span class="badge">${count}</span>
+        </button>`;
+      }).join('');
+
+      $('modeNav').querySelector('[data-mode="order"]').innerHTML = `${icons.list}<span>顺序刷题</span>`;
+      $('modeNav').querySelector('[data-mode="random"]').innerHTML = `${icons.shuffle}<span>随机抽题</span>`;
+      $('modeNav').querySelector('[data-mode="wrong"]').innerHTML = `${icons.alert}<span>错题重刷</span>`;
+      $('resetBtn').innerHTML = `${icons.trash}<span>清空记录</span>`;
+      $('modeNav').querySelectorAll('button').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === state.mode));
+    }
+
+    function renderStats() {
+      const list = filteredQuestions();
+      const resultValues = questions.map(q => state.results[q.id]).filter(Boolean);
+      const done = resultValues.length;
+      const right = resultValues.filter(r => r.score >= 1).length;
+      const wrong = resultValues.filter(r => r.score < 1).length;
+      $('totalCount').textContent = list.length;
+      $('doneCount').textContent = done;
+      $('rightRate').textContent = done ? Math.round(right / done * 100) + '%' : '0%';
+      $('wrongCount').textContent = wrong;
+    }
+
+    function renderQuiz() {
+      const list = filteredQuestions();
+      const item = currentQuestion();
+      renderStats();
+      if (!item) {
+        $('quizCard').innerHTML = '<div class="empty"><div><b>当前没有题目</b><br>先做几题产生错题，或者切回“顺序刷题”。</div></div>';
+        return;
+      }
+
+      const result = state.results[item.id];
+      const textareaValue = state.answers[item.id] || '';
+      const samplePlaceholder = item.id === 'q1' ? '在这里默写命令，例如：&#10;mkdir /xa25&#10;cd /xa25' : '输入命令';
+      const focused = Boolean(state.focus[item.id]);
+      const badge = result ? (result.score >= 1 ? '<span class="badge green">已掌握</span>' : '<span class="badge red">需重刷</span>') : '<span class="badge gold">未作答</span>';
+      $('quizCard').innerHTML = `
+        <div class="question-head">
+          <div class="question">
+            <div class="badge-row">
+              <span class="badge">${item.source}</span>
+              <span class="badge">${categories.find(c => c.id === item.category).name}</span>
+              ${focused ? '<span class="badge gold">重点</span>' : ''}
+              ${badge}
+            </div>
+            <h2>${item.prompt}</h2>
+          </div>
+          <div class="q-index">${state.index + 1}/${list.length}</div>
+        </div>
+        ${item.context ? `<div class="context">${item.context}</div>` : ''}
+        <div class="answer-box">
+          <label for="answerInput">
+            <span>你的命令</span>
+            <span>支持多行，顺序不用完全一致</span>
+          </label>
+          <textarea id="answerInput" spellcheck="false" placeholder="${samplePlaceholder}">${escapeHtml(textareaValue)}</textarea>
+        </div>
+        <div class="actions">
+          <button class="btn primary" id="checkBtn">${icons.check}<span>判分</span></button>
+          <button class="btn" id="showBtn">${icons.eye}<span>看答案</span></button>
+          <button class="btn ${focused ? 'marked' : ''}" id="focusBtn">${icons.star}<span>${focused ? '取消重点' : '标重点'}</span></button>
+          <button class="btn" id="prevBtn">${icons.back}<span>上一题</span></button>
+          <button class="btn" id="nextBtn">${icons.arrow}<span>下一题</span></button>
+        </div>
+        <div class="feedback ${result ? 'show' : ''}" id="feedback">
+          ${result ? feedbackHtml(item, result) : ''}
+        </div>
+      `;
+
+      $('answerInput').addEventListener('input', (event) => {
+        state.answers[item.id] = event.target.value;
+        save();
+      });
+      $('checkBtn').addEventListener('click', () => checkAnswer(item));
+      $('showBtn').addEventListener('click', () => showAnswer(item));
+      $('focusBtn').addEventListener('click', () => toggleFocus(item));
+      $('prevBtn').addEventListener('click', prevQuestion);
+      $('nextBtn').addEventListener('click', nextQuestion);
+    }
+
+    function checkAnswer(item) {
+      const input = $('answerInput').value;
+      state.answers[item.id] = input;
+      const ok = exactAnswer(input) === exactAnswer(item.answer);
+      state.results[item.id] = {
+        score: ok ? 1 : 0,
+        missing: ok ? [] : ['答案必须和标准答案一模一样'],
+        at: Date.now()
+      };
+      save();
+      $('feedback').classList.add('show');
+      $('feedback').innerHTML = feedbackHtml(item, state.results[item.id]);
+      renderStats();
+      renderReference();
+      renderNav();
+    }
+
+    function showAnswer(item) {
+      const result = state.results[item.id] || { score: 0, missing: ['已查看标准答案'], at: Date.now(), revealed: true };
+      result.revealed = true;
+      state.results[item.id] = result;
+      save();
+      $('feedback').classList.add('show');
+      $('feedback').innerHTML = feedbackHtml(item, result, true);
+      renderStats();
+      renderReference();
+      renderNav();
+    }
+
+    function feedbackHtml(item, result, forceAnswer = false) {
+      const percent = Math.round((result.score || 0) * 100);
+      const cls = percent >= 100 ? 'good' : percent >= 60 ? 'mid' : 'bad';
+      const missing = result.missing || [];
+      return `
+        <div class="feedback-head">
+          <div class="score ${cls}">匹配度 ${percent}%</div>
+          <div>${percent >= 100 ? '这题可以过' : '对照缺少项再默写一遍'}</div>
+        </div>
+        <div class="feedback-body">
+          ${missing.length && !forceAnswer ? `<div><b>判分结果：</b><ul class="missing">${missing.map(m => `<li>${escapeHtml(m)}</li>`).join('')}</ul></div>` : ''}
+          <div><b>标准答案：</b><pre>${escapeHtml(item.answer)}</pre></div>
+        </div>
+      `;
+    }
+
+    function prevQuestion() {
+      const list = filteredQuestions();
+      if (!list.length) return;
+      state.index = (state.index - 1 + list.length) % list.length;
+      renderQuiz();
+    }
+
+    function nextQuestion() {
+      const list = filteredQuestions();
+      if (!list.length) return;
+      if (state.mode === 'random') {
+        state.index = Math.floor(Math.random() * list.length);
+      } else {
+        state.index = (state.index + 1) % list.length;
+      }
+      renderQuiz();
+    }
+
+    function toggleFocus(item) {
+      if (state.focus[item.id]) delete state.focus[item.id];
+      else state.focus[item.id] = true;
+      save();
+      if (state.category === 'focus' && !state.focus[item.id]) {
+        const list = filteredQuestions();
+        if (state.index >= list.length) state.index = Math.max(0, list.length - 1);
+      }
+      renderNav();
+      renderQuiz();
+      renderReference();
+    }
+
+    function renderReference() {
+      const keyword = normalize($('searchInput').value || '');
+      const list = questions.filter(item => {
+        const haystack = normalize(`${item.prompt} ${item.answer} ${item.source}`);
+        return !keyword || haystack.includes(keyword);
+      });
+      $('cmdList').innerHTML = list.map(item => {
+        const result = state.results[item.id];
+        const tag = `${state.focus[item.id] ? '<span class="badge gold">重点</span>' : ''} ${result ? (result.score >= 1 ? '<span class="badge green">过</span>' : '<span class="badge red">错</span>') : ''}`;
+        return `<div class="cmd-item">
+          <b>${tag} ${escapeHtml(item.prompt)}</b>
+          <code>${escapeHtml(item.answer.split('\n').filter(line => !line.trim().startsWith('#')).join(' | '))}</code>
+        </div>`;
+      }).join('');
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function save() {
+      localStorage.setItem('linuxQuizAnswers', JSON.stringify(state.answers));
+      localStorage.setItem('linuxQuizResults', JSON.stringify(state.results));
+      localStorage.setItem('linuxQuizFocus', JSON.stringify(state.focus));
+    }
+
+    $('categoryNav').addEventListener('click', (event) => {
+      const btn = event.target.closest('button[data-category]');
+      if (!btn) return;
+      state.category = btn.dataset.category;
+      state.index = 0;
+      renderNav();
+      renderQuiz();
+    });
+
+    $('modeNav').addEventListener('click', (event) => {
+      const btn = event.target.closest('button[data-mode]');
+      if (!btn) return;
+      state.mode = btn.dataset.mode;
+      state.index = 0;
+      renderNav();
+      renderQuiz();
+    });
+
+    $('resetBtn').addEventListener('click', () => {
+      if (!confirm('确认清空本页保存的答题记录？')) return;
+      state.answers = {};
+      state.results = {};
+      save();
+      renderNav();
+      renderQuiz();
+      renderReference();
+    });
+
+    $('searchInput').addEventListener('input', renderReference);
+
+    renderNav();
+    renderQuiz();
+    renderReference();
+  </script>
+</body>
+</html>

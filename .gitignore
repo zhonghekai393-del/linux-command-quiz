@@ -1,0 +1,14 @@
+# OS / editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+*.lnk
+
+# Local verification output
+output/
+.cache/
+tmp/
+temp/
+
+# Logs
+*.log
